@@ -110,6 +110,7 @@ def edicionConexiones():
         conexcionSeleccionada = opcion_seleccionada.get()
     
     def grupoParaConectar():
+        pass
         
 
     def conectarNodos():
