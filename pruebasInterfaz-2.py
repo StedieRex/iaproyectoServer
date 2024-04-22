@@ -100,52 +100,21 @@ def guardarPNGmapa():
 
 def edicionConexiones():
     # Función para manejar la selección de la lista
-
+    global conexcionSeleccionada
+    global listaNodosParaConectar
     def seleccionar():
         seleccion = lista.curselection()
         for i in seleccion:
             opcion_seleccionada.set(lista.get(i))
         print("Opción seleccionada: ", opcion_seleccionada.get())
-        global conexcionSeleccionada
         conexcionSeleccionada = opcion_seleccionada.get()
-        #actualizar lista de nodos para conectar
-        opciones = []
-        actual = listaNodos.cabeza
-        while actual:
-            if str(actual.id) != str(conexcionSeleccionada):
-                opciones.append(str(actual.id))
-            actual = actual.siguiente
-        lista2.delete(0, tk.END)
-        for opcion in opciones:
-            lista2.insert('end', opcion)
     
     def grupoParaConectar():
-        seleccion = lista2.curselection()
-        for i in seleccion:
-            opciones_seleccionadas.set(lista2.get(i))
-        print("Opciones seleccionadas: ", opciones_seleccionadas.get())
-        global listaNodosParaConectar
-        listaNodosParaConectar = opciones_seleccionadas.get()
-
-        nodoEnConexion=listaNodosParaConectar[0]
-        listaNodosParaConectar=listaNodosParaConectar[1:]
-        cajaEstadoini.config(state="normal")
-        cajaEstadoini.delete('1.0', tk.END)
-        cajaEstadoini.insert(tk.END, f"{conexcionSeleccionada}->{nodoEnConexion}")
-        cajaEstadoini.config(state="disabled")
         
 
     def conectarNodos():
-        cabeza = listaNodos.cabeza
-        while cabeza:
-            if cabeza.id == int(conexcionSeleccionada):
-                cabeza.editarNodosAdyacentes(listaNodosParaConectar)
-                print("Nodos adyacentes: ",cabeza.obtenerNodosAdyacentes())
-            cabeza = cabeza.siguiente
-        cajaEstadoini.config(state="normal")
-        cajaEstadoini.insert(tk.END, f"{initial_state}")
-        cajaEstadoini.config(state="disabled")
-        
+        return 0
+
     # Crear la ventana
     ventana = tk.Tk()
     ventana.title("Ventana con Lista Scrollable")
@@ -182,7 +151,7 @@ def edicionConexiones():
 
     # Botón para seleccionar
     boton_seleccionar1 = ttk.Button(ventana, text="Seleccionar", command=seleccionar)
-    boton_seleccionar1.place(x=0,y=200)
+    boton_seleccionar1.place(x=200,y=200)
 
     # Etiqueta para mostrar la opción seleccionada
     etiqueta_opcion = ttk.Label(ventana, textvariable=opcion_seleccionada)
@@ -202,8 +171,8 @@ def edicionConexiones():
 
     # Crear una lista con selección múltiple
     lista2 = tk.Listbox(marco1, yscrollcommand=scrollbar.set, selectmode='multiple')
-    # for opcion in opciones:
-    #     lista2.insert('end', opcion)
+    for opcion in opciones:
+        lista2.insert('end', opcion)
     lista2.pack(side='left', fill='both', expand=True)
 
     # Configurar la barra de desplazamiento para controlar la lista
@@ -213,8 +182,8 @@ def edicionConexiones():
     opciones_seleccionadas = tk.StringVar()
 
     # Botón para seleccionar
-    boton_seleccionar2 = ttk.Button(ventana, text="Conectar grupo", command=grupoParaConectar)
-    boton_seleccionar2.place(x=200,y=200)
+    boton_seleccionar2 = ttk.Button(ventana, text="Seleccionar", command=seleccionar)
+    boton_seleccionar2.place(x=0,y=200)
 
     # Etiqueta para mostrar las opciones seleccionadas
     etiqueta_opciones = ttk.Label(ventana, textvariable=opciones_seleccionadas)
