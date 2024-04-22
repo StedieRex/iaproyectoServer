@@ -1,0 +1,4 @@
+id=1
+nodosAdyacentes=[2,4,5]
+distanciasNodosAdyacentes=[1500km,100km,900km]
+tiposCable_NodosAdyacentes=[f,c,f]#f=fibra optica, c=coaxial
