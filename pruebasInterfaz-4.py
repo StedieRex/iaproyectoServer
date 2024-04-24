@@ -324,7 +324,10 @@ def edicionConexiones():
 
 def editorMapaNodos():
     #variables para controlar nodos
-    id = 0
+    global comprobarContador
+    global contadorID
+    if comprobarContador==0:
+        contadorID = 0
     # Inicializar Pygame
     pygame.init()
 
@@ -362,8 +365,8 @@ def editorMapaNodos():
 
                 elif event.button == 1:  # Click izquierdo
                     # Crear un nuevo nodo en la posición del clic
-                    id += 1
-                    listaNodos.ingresarNuevoNodo(id,event.pos)
+                    contadorID += 1
+                    listaNodos.ingresarNuevoNodo(contadorID,event.pos)
                     
         # Dibujar en la ventana
         window.blit(background, (0, 0))
@@ -410,8 +413,11 @@ def guardarNodosyConexiones():
             actual = actual.siguiente
 
 def cargarNodosyConexiones():
+    global contadorID
     global guadarTuplas
     global listaNodos
+    global comprobarContador
+    comprobarContador = 1
     guadarTuplas = []
     listaNodos = ListaEnlazada()
     print("Cargando nodos y conexiones")
@@ -432,9 +438,12 @@ def cargarNodosyConexiones():
     print("Nodos cargados")
     cabeza = listaNodos.cabeza
     while cabeza:
+        global contadorID
+        contadorID += 1
         print(cabeza.id)
         print(cabeza.posicionXY)
         cabeza = cabeza.siguiente
+    print(contadorID)
 
 def opcion3():
     print("Opción 3")
@@ -449,6 +458,9 @@ def cargar_imagen(ruta, ancho, alto):
     imagen_tk = ImageTk.PhotoImage(imagen_redimensionada)
     return imagen_tk
 
+# Inicializar variables
+comprobarContador = 0
+contadorID = 0
 # Crear la ventana principal
 ventana = tk.Tk()
 ventana.title("Ventana con Menú")
