@@ -2,7 +2,7 @@ import os
 import pygame
 import sys
 from tkinter import ttk
-
+from PIL import Image, ImageTk
 # Obtener el directorio actual del script, para que el directorio este en el mismo lugar que el script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 # Cambiar el directorio de trabajo actual al directorio del script
@@ -58,13 +58,23 @@ def guardarPNGmapa():
     node_image = pygame.image.load("img/nodo.png")  # Reemplaza "nodo.png" con la ruta de tu imagen
     node_image = pygame.transform.scale(node_image, (30, 30))  # Escalar la imagen del nodo si es necesario
                     
+    # cargar mapa de fondo
+    background = pygame.image.load("img/mapaMexico.png")
+    background = pygame.transform.scale(background, (window_width, window_height))
+
     # Dibujar en la ventana
-    window.fill(WHITE)  # Llenar la ventana con color blanco
+    window.blit(background, (0, 0))
     
     # Dibujar los nodos 
     actual = listaNodos.cabeza
-    
+    arregloNodos = []
+
     while actual:
+        # guardar cada nodo en un arreglo con el siguiente formato [id,posicionX,posicionY]
+        #print(actual.id)
+        #print(actual.posicionXY[0])
+        #print(actual.posicionXY[1])
+        arregloNodos.append([actual.id,actual.posicionXY[0],actual.posicionXY[1]])
         window.blit(node_image, (actual.posicionXY[0] - 15, actual.posicionXY[1] - 15))  # Dibujar la imagen del nodo en la posición
         # Dibujar el ID del nodo
         font = pygame.font.Font(None, 20)
@@ -73,6 +83,48 @@ def guardarPNGmapa():
         window.blit(text_surface, text_rect)
         # Mover al siguiente nodo
         actual = actual.siguiente 
+
+    # print(arregloNodos)
+    # print("--------------------")
+    # print(guadarTuplas)
+
+    # Dibujar las conexiones
+    for tupla in guadarTuplas:
+        nodoInicial = tupla[0]
+        nodoFinal = tupla[1]
+        distancia = tupla[2]
+        tipoCable = tupla[3]
+        # Encontrar las posiciones de los nodos
+
+        encontrado = 0
+        for nodo in arregloNodos:
+            if nodo[0] == int(nodoInicial):
+                posInicialx = int(nodo[1])
+                posInicialy = int(nodo[2])
+                encontrado+=1
+            elif nodo[0] == int(nodoFinal):
+                posFinalx = int(nodo[1])
+                posFinaly = int(nodo[2])
+                encontrado+=1
+            if encontrado == 2:
+                break
+        print(f"posInicialx: {posInicialx} posInicialy: {posInicialy} posFinalx: {posFinalx} posFinaly: {posFinaly}")
+        # Dibujar la línea
+        if tipoCable == 'c':
+            pygame.draw.line(window, (255,165,0), (posInicialx,posInicialy), (posFinalx,posFinaly), 2)
+        elif tipoCable == 'f':
+            pygame.draw.line(window, (51,212,255), (posInicialx,posInicialy), (posFinalx,posFinaly), 2)
+        elif tipoCable == 'r':
+            pygame.draw.line(window, (255,0,0), (posInicialx,posInicialy), (posFinalx,posFinaly), 2)
+        # Dibujar la distancia
+        font = pygame.font.Font(None, 20)
+        text_surface = font.render(distancia, True, BLACK)
+        text_rect = text_surface.get_rect(center=((posInicialx+posFinalx) // 2, (posInicialy+posFinaly) // 2 - 20))
+        window.blit(text_surface, text_rect)
+        # Dibujar el tipo de cable
+        text_surface = font.render(tipoCable, True, BLACK)
+        text_rect = text_surface.get_rect(center=((posInicialx + posFinalx) // 2, (posInicialy + posFinaly) // 2 + 20))
+        window.blit(text_surface, text_rect)
 
     pygame.image.save(window, "mapa_nodos.png")  # Guardar la ventana como imagen
 
@@ -265,6 +317,7 @@ def edicionConexiones():
 
     # ---------------------------- Botón para crear las conexiones en el png ----------------------------
     boton_guardar = ttk.Button(ventana, text="Guardar PNG", command=guardarPNGmapa)
+    boton_guardar.place(x=200,y=350)
 
     # Ejecutar la ventana
     ventana.mainloop()
@@ -288,8 +341,13 @@ def editorMapaNodos():
     # Cargar la imagen para representar los nodos
     node_image = pygame.image.load("img/nodo.png")  # Reemplaza "nodo.png" con la ruta de tu imagen
     node_image = pygame.transform.scale(node_image, (30, 30))  # Escalar la imagen del nodo si es necesario
+
+    # cargar mapa de fondo
+    background = pygame.image.load("img/mapaMexico.png")
+    background = pygame.transform.scale(background, (window_width, window_height))
+
     
-    button_rect = pygame.Rect(150, 100, 100, 50)  # Rectángulo para el botón de guardar
+    button_rect = pygame.Rect(10, 500, 150, 40)  # Rectángulo para el botón de guardar, (x, y, ancho, alto)
 
     # Bucle principal
     running = True
@@ -308,8 +366,8 @@ def editorMapaNodos():
                     listaNodos.ingresarNuevoNodo(id,event.pos)
                     
         # Dibujar en la ventana
-        window.fill(WHITE)  # Llenar la ventana con color blanco
-        
+        window.blit(background, (0, 0))
+
         # Dibujar los nodos 
         actual = listaNodos.cabeza
         while actual:
@@ -323,9 +381,9 @@ def editorMapaNodos():
             actual = actual.siguiente 
 
         # Dibujar el botón de guardar
-        pygame.draw.rect(window, (0, 255, 0), button_rect)  # Rectángulo verde
+        pygame.draw.rect(window, (51, 255, 144), button_rect)  # Rectángulo verde
         font = pygame.font.Font(None, 30)
-        text_surface = font.render("Crear conexiones", True, BLACK)
+        text_surface = font.render("Guardar Nodos", True, BLACK)
         text_rect = text_surface.get_rect(center=button_rect.center)
         window.blit(text_surface, text_rect)
 
@@ -333,24 +391,63 @@ def editorMapaNodos():
 
     # Salir del juego
     pygame.quit()
-    sys.exit()
 
 import tkinter as tk
 guadarTuplas = []
 
-def opcion2():
-    print("Opción 2 seleccionada")
+def guardarNodosyConexiones():
+    print("Guardando nodos y conexiones")
+    print(guadarTuplas)
+    # Crear un archivo de texto
+    with open("nodos_conexiones.txt", "w") as archivo:
+        for tupla in guadarTuplas:
+            archivo.write(f"{tupla[0]} {tupla[1]} {tupla[2]} {tupla[3]}\n")
+    print("Nodos y conexiones guardados en nodos_conexiones.txt")
+    with open("nodos.txt", "w") as archivo:
+        actual = listaNodos.cabeza
+        while actual:
+            archivo.write(f"{actual.id} {actual.posicionXY[0]} {actual.posicionXY[1]}\n")
+            actual = actual.siguiente
+
+def cargarNodosyConexiones():
+    global guadarTuplas
+    global listaNodos
+    guadarTuplas = []
+    listaNodos = ListaEnlazada()
+    print("Cargando nodos y conexiones")
+    # Leer el archivo de texto
+    with open("nodos_conexiones.txt", "r") as archivo:
+        lineas = archivo.readlines()
+        for linea in lineas:
+            datos = linea.split()
+            guadarTuplas.append((datos[0], datos[1], datos[2], datos[3]))
+    print("Nodos y conexiones cargados")
+    print(guadarTuplas)
+    with open("nodos.txt", "r") as archivo:
+        lineas = archivo.readlines()
+        for linea in lineas:
+            datos = linea.split()
+            listaNodos.ingresarNuevoNodo(int(datos[0]), (int(datos[1]), int(datos[2])))
+    print("Nodos cargados")
+    print(listaNodos)
 
 def opcion3():
-    print("Opción 3 seleccionada")
+    print("Opción 3")
 
 # Función para salir de la aplicación
 def salir():
     ventana.destroy()
 
+def cargar_imagen(ruta, ancho, alto):
+    imagen_original = Image.open(ruta)
+    imagen_redimensionada = imagen_original.resize((ancho, alto))
+    imagen_tk = ImageTk.PhotoImage(imagen_redimensionada)
+    return imagen_tk
+
 # Crear la ventana principal
 ventana = tk.Tk()
 ventana.title("Ventana con Menú")
+ventana.geometry("1000x600")
 
 # Crear el menú
 menu_principal = tk.Menu(ventana)
@@ -361,7 +458,8 @@ menu_archivo = tk.Menu(menu_principal, tearoff=0)
 menu_principal.add_cascade(label="Archivo", menu=menu_archivo)
 menu_archivo.add_command(label="Crear Nodos", command=editorMapaNodos)
 menu_archivo.add_command(label="Enlazar Nodos", command=edicionConexiones)
-menu_archivo.add_command(label="imprimir tuplas", command=lambda: print(guadarTuplas))
+menu_archivo.add_command(label="Guardar", command=lambda: guardarNodosyConexiones)
+menu_archivo.add_command(label="Cargar", command=cargarNodosyConexiones)
 menu_archivo.add_separator()
 menu_archivo.add_command(label="Salir", command=salir)
 
@@ -369,6 +467,17 @@ menu_archivo.add_command(label="Salir", command=salir)
 menu_ayuda = tk.Menu(menu_principal, tearoff=0)
 menu_principal.add_cascade(label="Ayuda", menu=menu_ayuda)
 menu_ayuda.add_command(label="Opción 3", command=opcion3)
+
+# Definir el tamaño deseado para la imagen
+ancho_deseado = 300
+alto_deseado = 200
+
+# Cargar y redimensionar la imagen
+imagen_tk = cargar_imagen("mapa_nodos.png", ancho_deseado, alto_deseado)
+
+# Mostrar la imagen en un widget Label
+label_imagen = tk.Label(ventana, image=imagen_tk)
+label_imagen.pack()
 
 # Mostrar la ventana
 ventana.mainloop()
