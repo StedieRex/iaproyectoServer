@@ -23,30 +23,40 @@ class Graph:
             raise ValueError("Nodes not in graph")
 
 def astar(graph, start, goal):
-    open_list = [(0, start)]
-    closed_list = {}
-    g_scores = {node: float('inf') for node in graph.nodes}
-    g_scores[start] = 0
-    f_scores = {node: float('inf') for node in graph.nodes}
-    f_scores[start] = heuristic(start, goal)
-
+    open_list = [start]
+    closed_list = []
     while open_list:
-        _, current = heapq.heappop(open_list)
+        current = open_list.pop(0)
         if current == goal:
             # Reconstruct path
-            path = []
-            while current:
+            path = [goal]
+            while current != start:
+                current = closed_list[current]['parent']
                 path.append(current)
-                current = closed_list.get(current)
-            return path[::-1]
+            path.reverse()
+            return path
 
+        closed_list.append({current: {'parent': None}})
         for neighbor, data in graph.nodes[current.name].neighbors.items():
-            tentative_g_score = g_scores[current] + data['distance']
-            if tentative_g_score < g_scores[neighbor]:
-                closed_list[neighbor] = current
-                g_scores[neighbor] = tentative_g_score
-                f_scores[neighbor] = tentative_g_score + heuristic(neighbor, goal)
-                heapq.heappush(open_list, (f_scores[neighbor], neighbor))
+            child = neighbor
+            child_data = data
+            child_g_score = child_data['distance']
+            child_h_score = heuristic(child, goal)  # Replace this with a proper heuristic function
+            child_f_score = child_g_score + child_h_score
+
+            if not any(child in open_node for open_node in open_list) and not any(child in closed_node for closed_node in closed_list):
+                open_list.append(child)
+                closed_list.append({child: {'parent': current, 'g_score': child_g_score, 'f_score': child_f_score}})
+            elif any(child in open_node for open_node in open_list):
+                for node_dict in closed_list:
+                    if child in node_dict:
+                        existing_g_score = node_dict[child]['g_score']
+                        if child_g_score < existing_g_score:
+                            node_dict[child]['parent'] = current
+                            node_dict[child]['g_score'] = child_g_score
+                            node_dict[child]['f_score'] = child_f_score
+
+        open_list.sort(key=lambda node: closed_list[open_list.index(node)][node]['f_score'])
 
     return "FAIL"
 
