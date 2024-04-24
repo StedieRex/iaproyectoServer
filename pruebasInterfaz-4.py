@@ -308,16 +308,14 @@ def edicionConexiones():
     # etiqueta de dos puntos
     labelDosPuntos = tk.Label(ventana, text=":")
     labelDosPuntos.place(x=140,y=300)
-    # caja donde se incerta la distancia
-    cajaDistancia= tk.Entry(ventana, height=1, width=16, state="normal")#caja para numero de grupos
-    cajaDistancia.place(x=150,y=300)
-    # boton para guardar la conexion    
-    boton_guardar = ttk.Button(ventana, text="Enlazar", command=conectarNodos)
-    boton_guardar.place(x=300,y=300)
 
-    # ---------------------------- Botón para crear las conexiones en el png ----------------------------
-    boton_guardar = ttk.Button(ventana, text="Guardar PNG", command=guardarPNGmapa)
-    boton_guardar.place(x=200,y=350)
+    # caja para ingresar la distancia
+    cajaDistancia = tk.Entry(ventana, width=25)#caja para numero de grupos
+    cajaDistancia.place(x=150,y=300)
+
+    # boton de guardado
+    boton_crearPng = ttk.Button(ventana, text="Crear PNG", command=guardarPNGmapa)
+    boton_crearPng.place(x=300,y=300)
 
     # Ejecutar la ventana
     ventana.mainloop()
@@ -464,12 +462,12 @@ contadorID = 0
 # Crear la ventana principal
 ventana = tk.Tk()
 ventana.title("Ventana con Menú")
-ventana.geometry("1000x600")
+ventana.geometry("1200x600")
 
+#--------------------- Crear el menú ---------------------
 # Crear el menú
 menu_principal = tk.Menu(ventana)
 ventana.config(menu=menu_principal)
-
 # Crear el menú "Archivo"
 menu_archivo = tk.Menu(menu_principal, tearoff=0)
 menu_principal.add_cascade(label="Archivo", menu=menu_archivo)
@@ -479,22 +477,39 @@ menu_archivo.add_command(label="Guardar", command= guardarNodosyConexiones)
 menu_archivo.add_command(label="Cargar", command=cargarNodosyConexiones)
 menu_archivo.add_separator()
 menu_archivo.add_command(label="Salir", command=salir)
-
 # Crear el menú "Ayuda"
 menu_ayuda = tk.Menu(menu_principal, tearoff=0)
 menu_principal.add_cascade(label="Ayuda", menu=menu_ayuda)
 menu_ayuda.add_command(label="Opción 3", command=opcion3)
 
+#--------------------- Cargar imagen ---------------------
 # Definir el tamaño deseado para la imagen
-ancho_deseado = 300
-alto_deseado = 200
-
+ancho_deseado = 750
+alto_deseado = 500
 # Cargar y redimensionar la imagen
 imagen_tk = cargar_imagen("mapa_nodos.png", ancho_deseado, alto_deseado)
-
 # Mostrar la imagen en un widget Label
 label_imagen = tk.Label(ventana, image=imagen_tk)
-label_imagen.pack()
+label_imagen.place(x=10, y=40)
 
+
+#--------------------- Crear la lista de nodos ---------------------
+#Etiqueta para la lista de nodos
+etiqueta_lista = tk.Label(ventana, text="Mostrando ejecucion del algoritmo:")
+etiqueta_lista.place(x=800,y=10)
+#caja para mostrar como funciona el algortimo
+caja_mostrarCamino = tk.Text(ventana, height=25, width=25,state="disabled")#caja para numero de grupos
+caja_mostrarCamino.place(x=800,y=40)
+
+#--------------------- insertar tam del paquete ---------------------
+
+caja_insertarPaquete = tk.Entry(ventana, width=25)#caja para numero de grupos
+caja_insertarPaquete.place(x=825,y=500)
+
+etiqueta_insertarPaquete = tk.Label(ventana, text="Insertar tamaño del paquete:")
+etiqueta_insertarPaquete.place(x=800,y=470)
+
+boton_Comenzar = ttk.Button(ventana, text="Comenzar", command=opcion3)
+boton_Comenzar.place(x=825,y=530)
 # Mostrar la ventana
 ventana.mainloop()
