@@ -200,7 +200,7 @@ def edicionConexiones():
         # numero al azar para elegir el tipo de cable
         import random
         tipoCable = ['f','c','r']
-        tuplasConexiones.append((conexcionSeleccionada,nodoEnConexion,cajaDistancia.get("1.0",tk.END),random.choice(tipoCable)))
+        tuplasConexiones.append((conexcionSeleccionada,nodoEnConexion,cajaDistancia.get(),random.choice(tipoCable)))
         if len(listaNodosParaConectar)>0:
             nodoEnConexion=listaNodosParaConectar[0]
             listaNodosParaConectar=listaNodosParaConectar[1:]
@@ -309,7 +309,7 @@ def edicionConexiones():
     labelDosPuntos = tk.Label(ventana, text=":")
     labelDosPuntos.place(x=140,y=300)
     # caja donde se incerta la distancia
-    cajaDistancia= tk.Text(ventana, height=1, width=16, state="normal")#caja para numero de grupos
+    cajaDistancia= tk.Entry(ventana, height=1, width=16, state="normal")#caja para numero de grupos
     cajaDistancia.place(x=150,y=300)
     # boton para guardar la conexion    
     boton_guardar = ttk.Button(ventana, text="Enlazar", command=conectarNodos)
@@ -427,9 +427,14 @@ def cargarNodosyConexiones():
         lineas = archivo.readlines()
         for linea in lineas:
             datos = linea.split()
-            listaNodos.ingresarNuevoNodo(int(datos[0]), (int(datos[1]), int(datos[2])))
+            ingresandoPosicion = (int(datos[1]), int(datos[2]))
+            listaNodos.ingresarNuevoNodo(int(datos[0]), ingresandoPosicion)
     print("Nodos cargados")
-    print(listaNodos)
+    cabeza = listaNodos.cabeza
+    while cabeza:
+        print(cabeza.id)
+        print(cabeza.posicionXY)
+        cabeza = cabeza.siguiente
 
 def opcion3():
     print("Opción 3")
@@ -458,7 +463,7 @@ menu_archivo = tk.Menu(menu_principal, tearoff=0)
 menu_principal.add_cascade(label="Archivo", menu=menu_archivo)
 menu_archivo.add_command(label="Crear Nodos", command=editorMapaNodos)
 menu_archivo.add_command(label="Enlazar Nodos", command=edicionConexiones)
-menu_archivo.add_command(label="Guardar", command=lambda: guardarNodosyConexiones)
+menu_archivo.add_command(label="Guardar", command= guardarNodosyConexiones)
 menu_archivo.add_command(label="Cargar", command=cargarNodosyConexiones)
 menu_archivo.add_separator()
 menu_archivo.add_command(label="Salir", command=salir)
