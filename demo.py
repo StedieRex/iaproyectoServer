@@ -2,6 +2,8 @@ class Node:
     def __init__(self, name):
         self.name = name
         self.neighbors = {}  # Dictionary to store neighbors and edge information
+        self.parent = None  # Parent node in the path
+        self.heuristic_value = 0  # Heuristic value for A* search
 
     def add_neighbor(self, neighbor, speed, distance, retransmission):
         self.neighbors[neighbor] = {'speed': speed, 'distance': distance, 'retransmission': retransmission}
@@ -25,15 +27,12 @@ class Graph:
         else:
             raise ValueError("Nodes not in graph")
 
-# Example usage:
-node_a = Node('A')
-node_b = Node('B')
-graph = Graph()
-graph.add_node(node_a)
-graph.add_node(node_b)
-graph.add_edge(node_a, node_b, speed=100, distance=50, retransmission=2)
+def heuristic(node, parent_node):
+    # This is a simple heuristic function. You can replace it with a more sophisticated one if needed.
+    return 0
 
 def a_star_search(graph, start, goal):
+    import pudb; pudb.set_trace()
     open_set = [start]
     closed_set = []
     while open_set:
@@ -71,16 +70,19 @@ def a_star_search(graph, start, goal):
     return "FAIL"
 
 
-def heuristic(node, goal):
-    # This is a simple heuristic function. You can replace it with a more sophisticated one if needed.
-    return 0
 
 
 # Example usage:
 # Assuming graph and nodes are defined elsewhere
 # You should also define a heuristic function specific to your problem
+# Example usage:
+node_a = Node('A')
+node_b = Node('B')
+graph = Graph()
+graph.add_node(node_a)
+graph.add_node(node_b)
+graph.add_edge(node_a, node_b, speed=100, distance=50, retransmission=2)
 start_node = node_a
 goal_node = node_b
-start_node.heuristic_value = heuristic(start_node, goal_node)
 path = a_star_search(graph, start_node, goal_node)
 print([node.name for node in path])
