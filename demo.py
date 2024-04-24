@@ -1,104 +1,86 @@
-# first search implement using nodes with a parent attribute and children list
-# each link has three attributes: distance, velocity, retransmissionDistance
-# and a search function that takes a node and a goal and returns the path to the goal
-
-import math
-
 class Node:
-    def __init__(self, name, parent=None):
+    def __init__(self, name):
         self.name = name
-        self.parent = parent
-        self.children = []
+        self.neighbors = {}  # Dictionary to store neighbors and edge information
 
+    def add_neighbor(self, neighbor, speed, distance, retransmission):
+        self.neighbors[neighbor] = {'speed': speed, 'distance': distance, 'retransmission': retransmission}
+
+    def __repr__(self):
+        return self.__str__()
     def __str__(self):
         return self.name
 
-    def __repr__(self):
-        return self.name
+class Graph:
+    def __init__(self):
+        self.nodes = {}
 
-    def add_child(self, child):
-        self.children.append(child)
+    def add_node(self, node):
+        self.nodes[node.name] = node
 
-    def search(self, goal):
-        if self == goal:
-            return [self]
-        for child in self.children:
-            path = child.search(goal)
-            if path:
-                return [self] + path
-        return None
+    def add_edge(self, node1, node2, speed, distance, retransmission):
+        if node1.name in self.nodes and node2.name in self.nodes:
+            self.nodes[node1.name].add_neighbor(node2, speed, distance, retransmission)
+            self.nodes[node2.name].add_neighbor(node1, speed, distance, retransmission)
+        else:
+            raise ValueError("Nodes not in graph")
 
-class Link:
-    def __init__(self, node1, node2, distance, velocity, retransmissionDistance):
-        self.node1 = node1
-        self.node2 = node2
-        self.distance = distance
-        self.velocity = velocity
-        self.retransmissionDistance = retransmissionDistance
+# Example usage:
+node_a = Node('A')
+node_b = Node('B')
+graph = Graph()
+graph.add_node(node_a)
+graph.add_node(node_b)
+graph.add_edge(node_a, node_b, speed=100, distance=50, retransmission=2)
 
-    def __str__(self):
-        return self.node1.name + " -> " + self.node2.name
+def a_star_search(graph, start, goal):
+    open_set = [start]
+    closed_set = []
+    while open_set:
+        current_node = open_set.pop(0)
+        if current_node == goal:
+            # Reconstruct path
+            path = [current_node]
+            while current_node != start:
+                for neighbor, _ in graph.nodes[current_node].neighbors.items():
+                    if graph.nodes[neighbor.name].parent == current_node:
+                        path.insert(0, neighbor)
+                        current_node = neighbor
+                        break
+            return path
+        else:
+            # Generate children of current_node
+            for neighbor, edge_info in graph.nodes[current_node].neighbors.items():
+                if neighbor not in open_set and neighbor not in closed_set:
+                    neighbor.parent = current_node
+                    neighbor.heuristic_value = heuristic(neighbor, goal)
+                    open_set.append(neighbor)
+                elif neighbor in open_set:
+                    # Check if the path to this neighbor from the current node is shorter
+                    if neighbor.heuristic_value > heuristic(neighbor, goal):
+                        neighbor.parent = current_node
+                        neighbor.heuristic_value = heuristic(neighbor, goal)
+                elif neighbor in closed_set:
+                    # Check if the path to this neighbor from the current node is shorter
+                    if neighbor.heuristic_value > heuristic(neighbor, goal):
+                        closed_set.remove(neighbor)
+                        open_set.append(neighbor)
+        closed_set.append(current_node)
+        open_set.sort(key=lambda x: x.heuristic_value)
 
-    def __repr__(self):
-        return self.node1.name + " -> " + self.node2.name
+    return "FAIL"
 
-    def get_time(self):
-        return self.distance / self.velocity
 
-    def get_retransmissionTime(self):
-        return self.retransmissionDistance / self.velocity
+def heuristic(node, goal):
+    # This is a simple heuristic function. You can replace it with a more sophisticated one if needed.
+    return 0
 
-    def get_totalTime(self):
-        return self.get_time() + self.get_retransmissionTime()
 
-    def get_totalDistance(self):
-        return self.distance + self.retransmissionDistance
-
-# def main():
-# create nodes
-a = Node("A")
-b = Node("B")
-c = Node("C")
-d = Node("D")
-e = Node("E")
-f = Node("F")
-g = Node("G")
-h = Node("H")
-i = Node("I")
-j = Node("J")
-k = Node("K")
-l = Node("L")
-m = Node("M")
-n = Node("N")
-o = Node("O")
-p = Node("P")
-q = Node("Q")
-r = Node("R")
-s = Node("S")
-t = Node("T")
-u = Node("U")
-v = Node("V")
-w = Node("W")
-x = Node("X")
-y = Node("Y")
-z = Node("Z")
-
-# create links
-ab = Link(a, b, 1, 1, 0)
-ac = Link(a, c, 1, 1, 0)
-ad = Link(a, d, 1, 1, 0)
-ae = Link(a, e, 1, 1, 0)
-af = Link(a, f, 1, 1, 0)
-ag = Link(a, g, 1, 1, 0)
-ah = Link(a, h, 1, 1, 0)
-ai = Link(a, i, 1, 1, 0)
-aj = Link(a, j, 1, 1, 0)
-ak = Link(a, k, 1, 1, 0)
-al = Link(a, l, 1, 1, 0)
-am = Link(a, m, 1, 1, 0)
-an = Link(a, n, 1, 1, 0)
-ao = Link(a, o, 1, 1, 0)
-ap = Link(a, p, 1, 1, 0)
-aq = Link(a, q, 1, 1, 0)
-ar = Link(a, r, 1, 1, 0)
-aS = Link(a, s, 1, 1, 0)
+# Example usage:
+# Assuming graph and nodes are defined elsewhere
+# You should also define a heuristic function specific to your problem
+start_node = node_a
+goal_node = node_b
+start_node.heuristic_value = heuristic(start_node, goal_node)
+path = a_star_search(graph, start_node, goal_node)
+print([node.name for node in path])
