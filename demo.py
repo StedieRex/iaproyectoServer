@@ -1,12 +1,23 @@
-import heapq
-
+import math
+import time
+"""
+M es el tamano de dato que enviaremos
+"""
+M = 100
 class Node:
     def __init__(self, name):
         self.name = name
         self.neighbors = {}  # Dictionary to store neighbors and edge information
+        self.parent = None  # Parent node in the path
+        self.heuristic_value = 0  # default Heuristic value for A* search
 
     def add_neighbor(self, neighbor, speed, distance, retransmission):
         self.neighbors[neighbor] = {'speed': speed, 'distance': distance, 'retransmission': retransmission}
+
+    def __repr__(self):
+        return self.__str__()
+    def __str__(self):
+        return self.name
 
 class Graph:
     def __init__(self):
@@ -22,65 +33,72 @@ class Graph:
         else:
             raise ValueError("Nodes not in graph")
 
-def astar(graph, start, goal):
-    open_list = [start]
-    closed_list = []
-    while open_list:
-        current = open_list.pop(0)
-        if current == goal:
-            # Reconstruct path
-            path = [goal]
-            while current != start:
-                current = closed_list[current]['parent']
-                path.append(current)
-            path.reverse()
+def heuristic(edge_info, parent_node):
+    def serverLatency(speed, distance, retransmission):
+        s1 = float(M)/float(speed)
+        s2 = math.floor(distance/retransmission)
+        return s1 + s2
+    suma = parent_node.heuristic_value + serverLatency(edge_info['speed'], edge_info['distance'] , edge_info['retransmission'])
+    return suma
+
+def a_star_search(graph, start, goal, beam):
+    open_set = [start]
+    closed_set = []
+    counter = 0
+    while open_set:
+        print(f"open_set={open_set}")
+        current_node = open_set.pop(0)
+        if current_node == goal:
+            path = []
+            while current_node is not None:
+                path.insert(0, current_node)
+                current_node = current_node.parent
             return path
-
-        closed_list.append({current: {'parent': None}})
-        for neighbor, data in graph.nodes[current.name].neighbors.items():
-            child = neighbor
-            child_data = data
-            child_g_score = child_data['distance']
-            child_h_score = heuristic(child, goal)  # Replace this with a proper heuristic function
-            child_f_score = child_g_score + child_h_score
-
-            if not any(child in open_node for open_node in open_list) and not any(child in closed_node for closed_node in closed_list):
-                open_list.append(child)
-                closed_list.append({child: {'parent': current, 'g_score': child_g_score, 'f_score': child_f_score}})
-            elif any(child in open_node for open_node in open_list):
-                for node_dict in closed_list:
-                    if child in node_dict:
-                        existing_g_score = node_dict[child]['g_score']
-                        if child_g_score < existing_g_score:
-                            node_dict[child]['parent'] = current
-                            node_dict[child]['g_score'] = child_g_score
-                            node_dict[child]['f_score'] = child_f_score
-
-        open_list.sort(key=lambda node: closed_list[open_list.index(node)][node]['f_score'])
+            
+        else:
+            # Generate children of current_node
+            for neighbor, edge_info in graph.nodes[current_node.name].neighbors.items():
+                if neighbor not in open_set and neighbor not in closed_set:
+                    neighbor.parent = current_node
+                    neighbor.heuristic_value = heuristic(edge_info, current_node)
+                    open_set.append(neighbor)
+                elif neighbor in open_set:
+                    if neighbor.heuristic_value > heuristic(neighbor, goal):
+                        neighbor.parent = current_node
+                        neighbor.heuristic_value = heuristic(neighbor, goal)
+        closed_set.append(current_node)
+        print(closed_set)
+        print("\t",[(h, h.heuristic_value) for h in open_set])
+        open_set.sort(key=lambda x: x.heuristic_value)
+        print("\t",[(h, h.heuristic_value) for h in open_set])
+        open_set = open_set[:beam]
+        counter += 1
+        print(f"{counter:>80}")
+        time.sleep(2)
 
     return "FAIL"
 
-def heuristic(node, goal):
-    # Placeholder heuristic function, you can replace it with actual heuristic calculation
-    return 0
+
+
 
 # Example usage:
-if __name__ == "__main__":
-    graph = Graph()
-    A = Node("A")
-    B = Node("B")
-    C = Node("C")
-    D = Node("D")
-
-    graph.add_node(A)
-    graph.add_node(B)
-    graph.add_node(C)
-    graph.add_node(D)
-
-    graph.add_edge(A, B, 5, 10, 1)
-    graph.add_edge(A, C, 3, 8, 0)
-    graph.add_edge(B, D, 4, 9, 2)
-    graph.add_edge(C, D, 6, 12, 1)
-
-    path = astar(graph, A, D)
-    print(path)
+# Assuming graph and nodes are defined elsewhere
+# You should also define a heuristic function specific to your problem
+# Example usage:
+node_a = Node('A')
+node_b = Node('B')
+node_c = Node('C')
+node_d = Node('D')
+graph = Graph()
+graph.add_node(node_a)
+graph.add_node(node_b)
+graph.add_node(node_c)
+graph.add_node(node_d)
+graph.add_edge(node_a, node_b, speed=10, distance=50, retransmission=2)
+graph.add_edge(node_a, node_d, speed=100, distance=50, retransmission=2)
+graph.add_edge(node_b, node_c, speed=100, distance=50, retransmission=2)
+start_node = node_c
+start_node.heuristic_value=0
+goal_node = node_d
+path = a_star_search(graph, start_node, goal_node, beam=2)
+print(path)
