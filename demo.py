@@ -1,3 +1,9 @@
+import math
+import time
+"""
+M es el tamano de dato que enviaremos
+"""
+M = 100
 class Node:
     def __init__(self, name):
         self.name = name
@@ -28,40 +34,42 @@ class Graph:
             raise ValueError("Nodes not in graph")
 
 def heuristic(edge_info, parent_node):
-    suma = parent_node.heuristic_value + edge_info['speed'] +edge_info['distance'] + edge_info['retransmission']
+    def serverLatency(speed, distance, retransmission):
+        s1 = float(M)/float(speed)
+        s2 = math.floor(distance/retransmission)
+        return s1 + s2
+    suma = parent_node.heuristic_value + serverLatency(edge_info['speed'], edge_info['distance'] , edge_info['retransmission'])
     return suma
 
-def a_star_search(graph, start, goal):
+def a_star_search(graph, start, goal, beam):
     open_set = [start]
     closed_set = []
+    counter = 0
     while open_set:
+        print(f"open_set={open_set}")
         current_node = open_set.pop(0)
         if current_node == goal:
-            # Reconstruct path
-            path = [current_node]
-            while current_node != start:
-                print(current_node)
-                for neighbor, _ in graph.nodes[current_node.name].neighbors.items():
-                    if graph.nodes[neighbor.name].parent == current_node:
-                        path.insert(0, neighbor)
-                        current_node = neighbor
-                        break
+            path = []
+            while current_node is not None:
+                path.insert(0, current_node)
+                current_node = current_node.parent
             return path
+            
         else:
             # Generate children of current_node
 
             for neighbor, edge_info in graph.nodes[current_node.name].neighbors.items():
-                print(neighbor)
+                # print(neighbor)
                 if neighbor not in open_set and neighbor not in closed_set:
-                    print("not in open set neitheer close_set")
+                    # print("not in open set neitheer close_set")
                     neighbor.parent = current_node
-                    print("current Node")
+                    # print("current Node")
                     neighbor.heuristic_value = heuristic(edge_info, current_node)
-                    print("heuristic")
+                    # print("heuristic")
                     open_set.append(neighbor)
-                    print("open_set append")
+                    # print("open_set append")
                 elif neighbor in open_set:
-                    print("in open Set")
+                    # print("in open Set")
                     # Check if the path to this neighbor from the current node is shorter
                     if neighbor.heuristic_value > heuristic(neighbor, goal):
                         neighbor.parent = current_node
@@ -72,12 +80,17 @@ def a_star_search(graph, start, goal):
                 #     if neighbor.heuristic_value > heuristic(neighbor, goal):
                 #         closed_set.remove(neighbor)
                 #         open_set.append(neighbor)
-        print("Before close_append")
+        # print("Before close_append")
         closed_set.append(current_node)
-        print("after close_append current node")
+        # print("after close_append current node")
+        print(closed_set)
+        print("\t",[(h, h.heuristic_value) for h in open_set])
         open_set.sort(key=lambda x: x.heuristic_value)
-        print("sort close append")
-        open_set = open_set[:3]
+        print("\t",[(h, h.heuristic_value) for h in open_set])
+        open_set = open_set[:beam]
+        counter += 1
+        print(counter)
+        time.sleep(2)
 
     return "FAIL"
 
@@ -90,11 +103,18 @@ def a_star_search(graph, start, goal):
 # Example usage:
 node_a = Node('A')
 node_b = Node('B')
+node_c = Node('C')
+node_d = Node('D')
 graph = Graph()
 graph.add_node(node_a)
 graph.add_node(node_b)
-graph.add_edge(node_a, node_b, speed=100, distance=50, retransmission=2)
+graph.add_node(node_c)
+graph.add_node(node_d)
+graph.add_edge(node_a, node_b, speed=10, distance=50, retransmission=2)
+graph.add_edge(node_a, node_d, speed=100, distance=50, retransmission=2)
+graph.add_edge(node_b, node_c, speed=100, distance=50, retransmission=2)
 start_node = node_a
-goal_node = node_b
-path = a_star_search(graph, start_node, goal_node)
-print([node.name for node in path])
+start_node.heuristic_value=0
+goal_node = node_c
+path = a_star_search(graph, start_node, goal_node, beam=2)
+print(path)
