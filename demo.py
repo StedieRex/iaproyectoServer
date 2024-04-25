@@ -27,12 +27,11 @@ class Graph:
         else:
             raise ValueError("Nodes not in graph")
 
-def heuristic(node, parent_node):
-    # This is a simple heuristic function. You can replace it with a more sophisticated one if needed.
-    return 0
+def heuristic(edge_info, parent_node):
+    suma = parent_node.heuristic_value + edge_info['speed'] +edge_info['distance'] + edge_info['retransmission']
+    return suma
 
 def a_star_search(graph, start, goal):
-    import pudb; pudb.set_trace()
     open_set = [start]
     closed_set = []
     while open_set:
@@ -41,7 +40,8 @@ def a_star_search(graph, start, goal):
             # Reconstruct path
             path = [current_node]
             while current_node != start:
-                for neighbor, _ in graph.nodes[current_node].neighbors.items():
+                print(current_node)
+                for neighbor, _ in graph.nodes[current_node.name].neighbors.items():
                     if graph.nodes[neighbor.name].parent == current_node:
                         path.insert(0, neighbor)
                         current_node = neighbor
@@ -49,23 +49,35 @@ def a_star_search(graph, start, goal):
             return path
         else:
             # Generate children of current_node
-            for neighbor, edge_info in graph.nodes[current_node].neighbors.items():
+
+            for neighbor, edge_info in graph.nodes[current_node.name].neighbors.items():
+                print(neighbor)
                 if neighbor not in open_set and neighbor not in closed_set:
+                    print("not in open set neitheer close_set")
                     neighbor.parent = current_node
-                    neighbor.heuristic_value = heuristic(neighbor, goal)
+                    print("current Node")
+                    neighbor.heuristic_value = heuristic(edge_info, current_node)
+                    print("heuristic")
                     open_set.append(neighbor)
+                    print("open_set append")
                 elif neighbor in open_set:
+                    print("in open Set")
                     # Check if the path to this neighbor from the current node is shorter
                     if neighbor.heuristic_value > heuristic(neighbor, goal):
                         neighbor.parent = current_node
                         neighbor.heuristic_value = heuristic(neighbor, goal)
-                elif neighbor in closed_set:
-                    # Check if the path to this neighbor from the current node is shorter
-                    if neighbor.heuristic_value > heuristic(neighbor, goal):
-                        closed_set.remove(neighbor)
-                        open_set.append(neighbor)
+                # elif neighbor in closed_set:
+                #     print("in closed list")
+                #     # Check if the path to this neighbor from the current node is shorter
+                #     if neighbor.heuristic_value > heuristic(neighbor, goal):
+                #         closed_set.remove(neighbor)
+                #         open_set.append(neighbor)
+        print("Before close_append")
         closed_set.append(current_node)
+        print("after close_append current node")
         open_set.sort(key=lambda x: x.heuristic_value)
+        print("sort close append")
+        open_set = open_set[:3]
 
     return "FAIL"
 
