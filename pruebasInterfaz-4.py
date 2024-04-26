@@ -40,9 +40,10 @@ class ListaEnlazada:
 # Lista para almacenar las posiciones de los nodos
 listaNodos=ListaEnlazada()
 
-def guardarPNGmapa():
+def guardarPNGmapa(guardarNodosConConexiones):
 # Inicializar Pygame
     pygame.init()
+    global tipoImagen
 
     # Definir el tamaño de la ventana
     window_width = 1000
@@ -51,7 +52,6 @@ def guardarPNGmapa():
     pygame.display.set_caption("Sistema de Nodos")
 
     # Colores
-    WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
 
     # Cargar la imagen para representar los nodos
@@ -89,45 +89,50 @@ def guardarPNGmapa():
     # print(guadarTuplas)
 
     # Dibujar las conexiones
-    for tupla in guadarTuplas:
-        nodoInicial = tupla[0]
-        nodoFinal = tupla[1]
-        distancia = tupla[2]
-        tipoCable = tupla[3]
-        # Encontrar las posiciones de los nodos
+    if guardarNodosConConexiones:
+        for tupla in guadarTuplas:
+            nodoInicial = tupla[0]
+            nodoFinal = tupla[1]
+            distancia = tupla[2]
+            tipoCable = tupla[3]
+            # Encontrar las posiciones de los nodos
 
-        encontrado = 0
-        for nodo in arregloNodos:
-            if nodo[0] == int(nodoInicial):
-                posInicialx = int(nodo[1])
-                posInicialy = int(nodo[2])
-                encontrado+=1
-            elif nodo[0] == int(nodoFinal):
-                posFinalx = int(nodo[1])
-                posFinaly = int(nodo[2])
-                encontrado+=1
-            if encontrado == 2:
-                break
-        print(f"posInicialx: {posInicialx} posInicialy: {posInicialy} posFinalx: {posFinalx} posFinaly: {posFinaly}")
-        # Dibujar la línea
-        if tipoCable == 'c':
-            pygame.draw.line(window, (255,165,0), (posInicialx,posInicialy), (posFinalx,posFinaly), 2)
-        elif tipoCable == 'f':
-            pygame.draw.line(window, (51,212,255), (posInicialx,posInicialy), (posFinalx,posFinaly), 2)
-        elif tipoCable == 'r':
-            pygame.draw.line(window, (255,0,0), (posInicialx,posInicialy), (posFinalx,posFinaly), 2)
-        # Dibujar la distancia
-        font = pygame.font.Font(None, 20)
-        text_surface = font.render(distancia, True, BLACK)
-        text_rect = text_surface.get_rect(center=((posInicialx+posFinalx) // 2, (posInicialy+posFinaly) // 2 - 20))
-        window.blit(text_surface, text_rect)
-        # Dibujar el tipo de cable
-        text_surface = font.render(tipoCable, True, BLACK)
-        text_rect = text_surface.get_rect(center=((posInicialx + posFinalx) // 2, (posInicialy + posFinaly) // 2 + 20))
-        window.blit(text_surface, text_rect)
-
-    pygame.image.save(window, "mapa_nodos.png")  # Guardar la ventana como imagen
-
+            encontrado = 0
+            for nodo in arregloNodos:
+                if nodo[0] == int(nodoInicial):
+                    posInicialx = int(nodo[1])
+                    posInicialy = int(nodo[2])
+                    encontrado+=1
+                elif nodo[0] == int(nodoFinal):
+                    posFinalx = int(nodo[1])
+                    posFinaly = int(nodo[2])
+                    encontrado+=1
+                if encontrado == 2:
+                    break
+            print(f"posInicialx: {posInicialx} posInicialy: {posInicialy} posFinalx: {posFinalx} posFinaly: {posFinaly}")
+            # Dibujar la línea
+            if tipoCable == 'c':
+                pygame.draw.line(window, (255,165,0), (posInicialx,posInicialy), (posFinalx,posFinaly), 2)
+            elif tipoCable == 'f':
+                pygame.draw.line(window, (51,212,255), (posInicialx,posInicialy), (posFinalx,posFinaly), 2)
+            elif tipoCable == 'r':
+                pygame.draw.line(window, (255,0,0), (posInicialx,posInicialy), (posFinalx,posFinaly), 2)
+            # Dibujar la distancia
+            font = pygame.font.Font(None, 20)
+            text_surface = font.render(distancia, True, BLACK)
+            text_rect = text_surface.get_rect(center=((posInicialx+posFinalx) // 2, (posInicialy+posFinaly) // 2 - 20))
+            window.blit(text_surface, text_rect)
+            # Dibujar el tipo de cable
+            text_surface = font.render(tipoCable, True, BLACK)
+            text_rect = text_surface.get_rect(center=((posInicialx + posFinalx) // 2, (posInicialy + posFinaly) // 2 + 20))
+            window.blit(text_surface, text_rect)
+        tipoImagen = 2
+        pygame.image.save(window, "mapa_ConConexiones.png")  # Guardar la ventana como imagen
+        ventana.update()
+    else:
+        tipoImagen = 1
+        pygame.image.save(window, "mapa_SinConexiones.png")  # Guardar la ventana como imagen
+        ventana.update()
     # Salir del juego
     pygame.quit()
 
@@ -313,9 +318,12 @@ def edicionConexiones():
     cajaDistancia = tk.Entry(ventana, width=25)#caja para numero de grupos
     cajaDistancia.place(x=150,y=300)
 
+    boton_conectar = ttk.Button(ventana, text="Conectar", command=conectarNodos)
+    boton_conectar.place(x=310,y=295)
+
     # boton de guardado
-    boton_crearPng = ttk.Button(ventana, text="Crear PNG", command=guardarPNGmapa)
-    boton_crearPng.place(x=300,y=300)
+    boton_guardar = ttk.Button(ventana, text="Guardar", command= lambda: guardarPNGmapa(True))
+    boton_guardar.place(x=310,y=330)
 
     # Ejecutar la ventana
     ventana.mainloop()
@@ -336,7 +344,6 @@ def editorMapaNodos():
     pygame.display.set_caption("Sistema de Nodos")
 
     # Colores
-    WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
 
     # Cargar la imagen para representar los nodos
@@ -359,6 +366,8 @@ def editorMapaNodos():
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and button_rect.collidepoint(event.pos):
+                    guardarPNGmapa(False)
+                    print("Guardando nodos")
                     pygame.quit()
 
                 elif event.button == 1:  # Click izquierdo
@@ -382,6 +391,7 @@ def editorMapaNodos():
             actual = actual.siguiente 
 
         # Dibujar el botón de guardar
+        # El boton de guardar se dibuja en la esquina inferior izquierda
         pygame.draw.rect(window, (51, 255, 144), button_rect)  # Rectángulo verde
         font = pygame.font.Font(None, 30)
         text_surface = font.render("Guardar Nodos", True, BLACK)
@@ -389,9 +399,10 @@ def editorMapaNodos():
         window.blit(text_surface, text_rect)
 
         pygame.display.flip()# Actualizar la ventana
-
+   
     # Salir del juego
     pygame.quit()
+    
 
 import tkinter as tk
 guadarTuplas = []
@@ -459,6 +470,7 @@ def cargar_imagen(ruta, ancho, alto):
 # Inicializar variables
 comprobarContador = 0
 contadorID = 0
+tipoImagen = 0
 # Crear la ventana principal
 ventana = tk.Tk()
 ventana.title("Ventana con Menú")
@@ -487,10 +499,12 @@ menu_ayuda.add_command(label="Opción 3", command=opcion3)
 ancho_deseado = 750
 alto_deseado = 500
 # Cargar y redimensionar la imagen
-imagen_tk = cargar_imagen("mapa_nodos.png", ancho_deseado, alto_deseado)
+
+imagen_tk = cargar_imagen("img/mapaMexico.png", ancho_deseado, alto_deseado)
 # Mostrar la imagen en un widget Label
 label_imagen = tk.Label(ventana, image=imagen_tk)
 label_imagen.place(x=10, y=40)
+
 
 
 #--------------------- Crear la lista de nodos ---------------------
