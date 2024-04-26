@@ -267,7 +267,8 @@ def edicionConexiones():
             cajaEstadoini.delete('1.0', tk.END)
             cajaEstadoini.insert(tk.END, f"{conexcionSeleccionada}->{nodoEnConexion}")
             cajaEstadoini.config(state="disabled")
-            guardarPNGmapa(True)
+            for conexion in tuplasConexiones:
+                guadarTuplas.append(conexion)
         else:
             cajaEstadoini.config(state="normal")
             cajaEstadoini.delete('1.0', tk.END)
@@ -276,7 +277,8 @@ def edicionConexiones():
             lista2.delete(0, tk.END)
             for conexion in tuplasConexiones:
                 guadarTuplas.append(conexion)
-            guardarPNGmapa(True)
+
+        guardarPNGmapa(True)
         #print(tuplasConexiones)
         #probando = tuplasConexiones[0]
         #print(probando[0])
@@ -522,11 +524,17 @@ def heuristic(edge_info, parent_node):
     return suma
 
 def BeamSearch(graph, start, goal, beam):
+    global cajaTablaAgrupada
     open_set = [start]
     closed_set = []
     counter = 0
     while open_set:
-        print(f"open_set={open_set}")
+        #print(f"open_set={open_set}")
+        
+        cajaTablaAgrupada.config(state="normal")
+        cajaTablaAgrupada.insert(tk.END, f"open_set={open_set} camino -> ")
+        cajaTablaAgrupada.config(state="disabled")
+
         current_node = open_set.pop(0)
         if current_node == goal:
             path = []
@@ -571,9 +579,23 @@ def BeamSearch(graph, start, goal, beam):
         # open_set = open_set[:beam]
         # counter += 1
         # print(counter)
+
         cajaTablaAgrupada.config(state="normal")
-        cajaTablaAgrupada.delete('1.0', tk.END)
-        cajaTablaAgrupada.insert(tk.END, f"{open_set}\n")
+        cajaTablaAgrupada.insert(tk.END, closed_set)
+        print(closed_set)
+        cajaTablaAgrupada.insert(tk.END, "\n")
+        cajaTablaAgrupada.insert(tk.END, "\t",[(h, h.heuristic_value) for h in open_set])
+        print("\t",[(h, h.heuristic_value) for h in open_set])
+        cajaTablaAgrupada.insert(tk.END, "\n")
+        open_set.sort(key=lambda x: x.heuristic_value)
+        cajaTablaAgrupada.insert(tk.END, "\t",[(h, h.heuristic_value) for h in open_set])
+        print("\t",[(h, h.heuristic_value) for h in open_set])
+        cajaTablaAgrupada.insert(tk.END, "\n")
+        open_set = open_set[:beam]
+        counter += 1
+        cajaTablaAgrupada.insert(tk.END, counter)
+        print(counter)
+        cajaTablaAgrupada.insert(tk.END, "\n")
         cajaTablaAgrupada.config(state="disabled")
         time.sleep(2)
 
@@ -613,7 +635,12 @@ def iniciarBeamSearch():
 
     start_node.heuristic_value=0
     path = BeamSearch(graph, start_node, goal_node, beam=2)
-    print(path)
+
+    cajaTablaAgrupada.config(state="normal")
+    cajaTablaAgrupada.insert(tk.END, path)
+    cajaTablaAgrupada.insert(tk.END, "\n")
+    cajaTablaAgrupada.config(state="disabled")
+    #print(path)
 
 
 
