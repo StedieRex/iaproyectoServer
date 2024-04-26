@@ -3,11 +3,44 @@ import pygame
 import sys
 from tkinter import ttk
 from PIL import Image, ImageTk
+import math
+import time
 # Obtener el directorio actual del script, para que el directorio este en el mismo lugar que el script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 # Cambiar el directorio de trabajo actual al directorio del script
 os.chdir(script_dir)
 
+# ------------- Estructuras necesarias para beamSearch -----------------
+class Node1:
+    def __init__(self, name):
+        self.name = name
+        self.neighbors = {}  # Dictionary to store neighbors and edge information
+        self.parent = None  # Parent node in the path
+        self.heuristic_value = 0  # Heuristic value for A* search
+
+    def add_neighbor(self, neighbor, speed, distance, retransmission):
+        self.neighbors[neighbor] = {'speed': speed, 'distance': distance, 'retransmission': retransmission}
+
+    def __repr__(self):
+        return self.__str__()
+    def __str__(self):
+        return self.name
+
+class Graph:
+    def __init__(self):
+        self.nodes = {}
+
+    def add_node(self, node):
+        self.nodes[node.name] = node
+
+    def add_edge(self, node1, node2, speed, distance, retransmission):
+        if node1.name in self.nodes and node2.name in self.nodes:
+            self.nodes[node1.name].add_neighbor(node2, speed, distance, retransmission)
+            self.nodes[node2.name].add_neighbor(node1, speed, distance, retransmission)
+        else:
+            raise ValueError("Nodes not in graph")
+
+# --------------------- Clases para almacenar los nodos y conexiones ---------------------
 class Nodo:
     global posicionXY
     global id
@@ -40,6 +73,7 @@ class ListaEnlazada:
 # Lista para almacenar las posiciones de los nodos
 listaNodos=ListaEnlazada()
 
+# --------------------- Funciones para guardar las imagenes que generan los nodos y conexiones ---------------------
 def guardarPNGmapa(guardarNodosConConexiones):
 # Inicializar Pygame
     pygame.init()
@@ -146,6 +180,7 @@ def guardarPNGmapa(guardarNodosConConexiones):
     # Salir del juego
     pygame.quit()
 
+# --------------------- Funciones para la edición de conexiones ---------------------
 def edicionConexiones():
     # Función para manejar la selección de la lista
 
@@ -215,7 +250,14 @@ def edicionConexiones():
         # numero al azar para elegir el tipo de cable
         import random
         tipoCable = ['f','c','r']
-        tuplasConexiones.append((conexcionSeleccionada,nodoEnConexion,cajaDistancia.get(),random.choice(tipoCable)))
+        cable = random.choice(tipoCable)
+        if cable == 'f':
+            tuplasConexiones.append((conexcionSeleccionada,nodoEnConexion,cajaDistancia.get(),cable,'500','3000000000')) # nodo1,nodo2,distancia,tipoCable,retransmision(cada cuando se hace, en metros),velocidad
+        elif cable == 'c':
+            tuplasConexiones.append((conexcionSeleccionada,nodoEnConexion,cajaDistancia.get(),cable,'750','10000000000'))
+        elif cable == 'r':
+            tuplasConexiones.append((conexcionSeleccionada,nodoEnConexion,cajaDistancia.get(),cable,'200','2000000000'))
+        
         if len(listaNodosParaConectar)>0:
             nodoEnConexion=listaNodosParaConectar[0]
             listaNodosParaConectar=listaNodosParaConectar[1:]
@@ -412,18 +454,15 @@ def editorMapaNodos():
    
     # Salir del juego
     pygame.quit()
-    
 
-import tkinter as tk
-guadarTuplas = []
-
+# --------------------- Guardar y cargar nodos y conexiones ---------------------
 def guardarNodosyConexiones():
     print("Guardando nodos y conexiones")
     print(guadarTuplas)
     # Crear un archivo de texto
     with open("nodos_conexiones.txt", "w") as archivo:
         for tupla in guadarTuplas:
-            archivo.write(f"{tupla[0]} {tupla[1]} {tupla[2]} {tupla[3]}\n")
+            archivo.write(f"{tupla[0]} {tupla[1]} {tupla[2]} {tupla[3]} {tupla[4]} {tupla[5]}\n")
     print("Nodos y conexiones guardados en nodos_conexiones.txt")
     with open("nodos.txt", "w") as archivo:
         actual = listaNodos.cabeza
@@ -445,7 +484,7 @@ def cargarNodosyConexiones():
         lineas = archivo.readlines()
         for linea in lineas:
             datos = linea.split()
-            guadarTuplas.append((datos[0], datos[1], datos[2], datos[3]))
+            guadarTuplas.append((datos[0], datos[1], datos[2], datos[3], datos[4], datos[5]))
     print("Nodos y conexiones cargados")
     print(guadarTuplas)
     with open("nodos.txt", "r") as archivo:
@@ -464,8 +503,113 @@ def cargarNodosyConexiones():
         cabeza = cabeza.siguiente
     print(contadorID)
 
-def opcion3():
-    print("Opción 3")
+    # actualizando la imagen
+    nuevaImagen = Image.open("mapa_ConConexiones.png")
+    nuevaImagen = nuevaImagen.resize((750, 500))
+    nuevaImagen_tk = ImageTk.PhotoImage(nuevaImagen)
+    label_imagen.configure(image=nuevaImagen_tk)
+    label_imagen.image = nuevaImagen_tk
+
+#--------------------- Funciones del algoritmo de beam search ---------------------
+def heuristic(edge_info, parent_node):
+    global M
+    M = int(caja_insertarPaquete.get())
+    def serverLatency(speed, distance, retransmission):
+        s1 = float(M)/float(speed)
+        s2 = math.floor(distance/retransmission)
+        return s1 + s2
+    suma = parent_node.heuristic_value + serverLatency(edge_info['speed'], edge_info['distance'] , edge_info['retransmission'])
+    return suma
+
+def BeamSearch(graph, start, goal, beam):
+    open_set = [start]
+    closed_set = []
+    counter = 0
+    while open_set:
+        print(f"open_set={open_set}")
+        current_node = open_set.pop(0)
+        if current_node == goal:
+            path = []
+            while current_node is not None:
+                path.insert(0, current_node)
+                current_node = current_node.parent
+            return path
+            
+        else:
+            # Generate children of current_node
+
+            for neighbor, edge_info in graph.nodes[current_node.name].neighbors.items():
+                # print(neighbor)
+                if neighbor not in open_set and neighbor not in closed_set:
+                    # print("not in open set neitheer close_set")
+                    neighbor.parent = current_node
+                    # print("current Node")
+                    neighbor.heuristic_value = heuristic(edge_info, current_node)
+                    # print("heuristic")
+                    open_set.append(neighbor)
+                    # print("open_set append")
+                elif neighbor in open_set:
+                    # print("in open Set")
+                    # Check if the path to this neighbor from the current node is shorter
+                    if neighbor.heuristic_value > heuristic(neighbor, goal):
+                        neighbor.parent = current_node
+                        neighbor.heuristic_value = heuristic(neighbor, goal)
+                # elif neighbor in closed_set:
+                #     print("in closed list")
+                #     # Check if the path to this neighbor from the current node is shorter
+                #     if neighbor.heuristic_value > heuristic(neighbor, goal):
+                #         closed_set.remove(neighbor)
+                #         open_set.append(neighbor)
+        # print("Before close_append")
+        closed_set.append(current_node)
+        # print("after close_append current node")
+        print(closed_set)
+        print("\t",[(h, h.heuristic_value) for h in open_set])
+        open_set.sort(key=lambda x: x.heuristic_value)
+        print("\t",[(h, h.heuristic_value) for h in open_set])
+        open_set = open_set[:beam]
+        counter += 1
+        print(counter)
+        time.sleep(2)
+
+    return "FAIL"
+
+
+def iniciarBeamSearch():
+    # Crear el grafo
+    graph = Graph()
+    arregloGraph = []
+    # Crear y agregar nodos al grafo con un ciclo
+    cabeza = listaNodos.cabeza
+    while cabeza:
+        arregloGraph.append(Node1(str(cabeza.id)))
+        cabeza = cabeza.siguiente
+
+    for nodo in arregloGraph:
+        graph.add_node(nodo)
+        if nodo.name == '1':
+            start_node = nodo
+        elif nodo.name == '6':
+            goal_node = nodo
+
+    # Conectar los nodos con aristas (edges) según tu lógica
+    # Por ejemplo, puedes conectar cada nodo con su sucesor inmediato en el ciclo
+    for i in guadarTuplas:
+        repeticion = math.floor((int(i[2])*1000)/int(i[4]))
+        inicio = arregloGraph[(int(i[0])-1)]
+        final = arregloGraph[(int(i[1])-1)]
+        graph.add_edge(inicio, final, int(i[5]), int(i[2]),repeticion)
+
+    start_node.heuristic_value=0
+    path = BeamSearch(graph, start_node, goal_node, beam=2)
+    print(path)
+    
+
+
+
+#--------------------- Crear la ventana principal ---------------------
+import tkinter as tk
+guadarTuplas = []
 
 # Función para salir de la aplicación
 def salir():
@@ -481,6 +625,8 @@ def cargar_imagen(ruta, ancho, alto):
 comprobarContador = 0
 contadorID = 0
 tipoImagen = 0
+M = 0 # M es el tamano de dato que enviaremos
+
 # Crear la ventana principal
 ventana = tk.Tk()
 ventana.title("Ventana con Menú")
@@ -502,7 +648,7 @@ menu_archivo.add_command(label="Salir", command=salir)
 # Crear el menú "Ayuda"
 menu_ayuda = tk.Menu(menu_principal, tearoff=0)
 menu_principal.add_cascade(label="Ayuda", menu=menu_ayuda)
-menu_ayuda.add_command(label="Opción 3", command=opcion3)
+
 
 #--------------------- Cargar imagen ---------------------
 # Definir el tamaño deseado para la imagen
@@ -533,7 +679,7 @@ caja_insertarPaquete.place(x=825,y=500)
 etiqueta_insertarPaquete = tk.Label(ventana, text="Insertar tamaño del paquete:")
 etiqueta_insertarPaquete.place(x=800,y=470)
 
-boton_Comenzar = ttk.Button(ventana, text="Comenzar", command=opcion3)
+boton_Comenzar = ttk.Button(ventana, text="Comenzar", command=iniciarBeamSearch)
 boton_Comenzar.place(x=825,y=530)
 # Mostrar la ventana
 ventana.mainloop()
