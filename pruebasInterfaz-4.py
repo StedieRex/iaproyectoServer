@@ -4,6 +4,8 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import math
 import time
+from tkinter import scrolledtext
+from tkinter import messagebox
 # Obtener el directorio actual del script, para que el directorio este en el mismo lugar que el script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 # Cambiar el directorio de trabajo actual al directorio del script
@@ -234,6 +236,7 @@ def edicionConexiones():
                     print("dupla no encontrada")
         else:
             print("no hay duplas")
+        
         nodoEnConexion=listaNodosParaConectar[0]
         listaNodosParaConectar=listaNodosParaConectar[1:]
         cajaEstadoini.config(state="normal")
@@ -264,6 +267,7 @@ def edicionConexiones():
             cajaEstadoini.delete('1.0', tk.END)
             cajaEstadoini.insert(tk.END, f"{conexcionSeleccionada}->{nodoEnConexion}")
             cajaEstadoini.config(state="disabled")
+            guardarPNGmapa(True)
         else:
             cajaEstadoini.config(state="normal")
             cajaEstadoini.delete('1.0', tk.END)
@@ -272,6 +276,7 @@ def edicionConexiones():
             lista2.delete(0, tk.END)
             for conexion in tuplasConexiones:
                 guadarTuplas.append(conexion)
+            guardarPNGmapa(True)
         #print(tuplasConexiones)
         #probando = tuplasConexiones[0]
         #print(probando[0])
@@ -371,10 +376,6 @@ def edicionConexiones():
 
     boton_conectar = ttk.Button(ventana, text="Conectar", command=conectarNodos)
     boton_conectar.place(x=310,y=295)
-
-    # boton de guardado
-    boton_guardar = ttk.Button(ventana, text="Guardar", command= lambda: guardarPNGmapa(True))
-    boton_guardar.place(x=310,y=330)
 
     # Ejecutar la ventana
     ventana.mainloop()
@@ -562,13 +563,18 @@ def BeamSearch(graph, start, goal, beam):
         # print("Before close_append")
         closed_set.append(current_node)
         # print("after close_append current node")
-        print(closed_set)
-        print("\t",[(h, h.heuristic_value) for h in open_set])
-        open_set.sort(key=lambda x: x.heuristic_value)
-        print("\t",[(h, h.heuristic_value) for h in open_set])
-        open_set = open_set[:beam]
-        counter += 1
-        print(counter)
+
+        # print(closed_set)
+        # print("\t",[(h, h.heuristic_value) for h in open_set])
+        # open_set.sort(key=lambda x: x.heuristic_value)
+        # print("\t",[(h, h.heuristic_value) for h in open_set])
+        # open_set = open_set[:beam]
+        # counter += 1
+        # print(counter)
+        cajaTablaAgrupada.config(state="normal")
+        cajaTablaAgrupada.delete('1.0', tk.END)
+        cajaTablaAgrupada.insert(tk.END, f"{open_set}\n")
+        cajaTablaAgrupada.config(state="disabled")
         time.sleep(2)
 
     return "FAIL"
@@ -578,6 +584,12 @@ def iniciarBeamSearch():
     # Crear el grafo
     graph = Graph()
     arregloGraph = []
+    nodoInicial = caja_eligiendoNododInicial.get()
+    nodoFinal = caja_eligiendoNodoFinal.get()
+    global M
+    if caja_eligiendoNododInicial.get() == "" or caja_eligiendoNodoFinal.get() == "" or caja_insertarPaquete.get() == "":
+        messagebox.showwarning("Advertencia", "Faltan datos: Inserta el tamaño del paquete.")
+        return
     # Crear y agregar nodos al grafo con un ciclo
     cabeza = listaNodos.cabeza
     while cabeza:
@@ -586,9 +598,9 @@ def iniciarBeamSearch():
 
     for nodo in arregloGraph:
         graph.add_node(nodo)
-        if nodo.name == '1':
+        if nodo.name == nodoInicial:
             start_node = nodo
-        elif nodo.name == '6':
+        elif nodo.name == nodoFinal:
             goal_node = nodo
 
     # Conectar los nodos con aristas (edges) según tu lógica
@@ -662,23 +674,49 @@ label_imagen.place(x=10, y=40)
 
 
 
-#--------------------- Crear la lista de nodos ---------------------
+#--------------------- Salida para mostrar el camino ---------------------
 #Etiqueta para la lista de nodos
 etiqueta_lista = tk.Label(ventana, text="Mostrando ejecucion del algoritmo:")
 etiqueta_lista.place(x=800,y=10)
 #caja para mostrar como funciona el algortimo
-caja_mostrarCamino = tk.Text(ventana, height=25, width=25,state="disabled")#caja para numero de grupos
-caja_mostrarCamino.place(x=800,y=40)
+
+# Crear un Frame que contendrá la caja de texto y la barra de desplazamiento
+frame_contenedor = tk.Frame(ventana)
+frame_contenedor.pack()
+frame_contenedor.config(width=1000, height=500)
+frame_contenedor.place(x=795,y=40)
+
+# Crear una caja de texto con barras de desplazamiento vertical
+cajaTablaAgrupada = scrolledtext.ScrolledText(frame_contenedor, height=25, width=45, state="disabled", wrap=tk.NONE)
+cajaTablaAgrupada.pack(side="left", fill="both", expand=True)
+
+# Crear una barra de desplazamiento horizontal
+scrollbar_horizontal = tk.Scrollbar(frame_contenedor, orient=tk.HORIZONTAL, command=cajaTablaAgrupada.xview)
+scrollbar_horizontal.place(x=0, y=388, relwidth=.96, height=20)
+
+# Configurar la caja de texto para desplazarse horizontalmente
+cajaTablaAgrupada.config(xscrollcommand=scrollbar_horizontal.set)
 
 #--------------------- insertar tam del paquete ---------------------
 
 caja_insertarPaquete = tk.Entry(ventana, width=25)#caja para numero de grupos
-caja_insertarPaquete.place(x=825,y=500)
+caja_insertarPaquete.place(x=895,y=470)
 
 etiqueta_insertarPaquete = tk.Label(ventana, text="Insertar tamaño del paquete:")
-etiqueta_insertarPaquete.place(x=800,y=470)
+etiqueta_insertarPaquete.place(x=895,y=440)
 
 boton_Comenzar = ttk.Button(ventana, text="Comenzar", command=iniciarBeamSearch)
-boton_Comenzar.place(x=825,y=530)
+boton_Comenzar.place(x=935,y=560)
 # Mostrar la ventana
+
+#--------------------- Insertar nodo inicial y final ---------------------
+etiqueta_insertarNodoInicial = tk.Label(ventana, text="Insertar nodo inicial:")
+etiqueta_insertarNodoInicial.place(x=850,y=500)
+caja_eligiendoNododInicial= tk.Entry(ventana,width=17)#caja para numero de grupos
+caja_eligiendoNododInicial.place(x=850,y=530)
+
+etiqueta_insertarNodoFinal = tk.Label(ventana, text="Insertar nodo final:")
+etiqueta_insertarNodoFinal.place(x=1000,y=500)
+caja_eligiendoNodoFinal= tk.Entry(ventana,width=17)#caja para numero de grupos
+caja_eligiendoNodoFinal.place(x=1000,y=530)
 ventana.mainloop()
