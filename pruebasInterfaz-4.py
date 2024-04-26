@@ -1,6 +1,5 @@
 import os
 import pygame
-import sys
 from tkinter import ttk
 from PIL import Image, ImageTk
 import math
@@ -551,9 +550,9 @@ def BeamSearch(graph, start, goal, beam):
                 elif neighbor in open_set:
                     # print("in open Set")
                     # Check if the path to this neighbor from the current node is shorter
-                    if neighbor.heuristic_value > heuristic(neighbor, goal):
+                    if neighbor.heuristic_value > heuristic(neighbor, current_node):
                         neighbor.parent = current_node
-                        neighbor.heuristic_value = heuristic(neighbor, goal)
+                        neighbor.heuristic_value = heuristic(neighbor, current_node)
                 # elif neighbor in closed_set:
                 #     print("in closed list")
                 #     # Check if the path to this neighbor from the current node is shorter
@@ -576,34 +575,30 @@ def BeamSearch(graph, start, goal, beam):
 
 
 def iniciarBeamSearch():
-    # Crear el grafo
-    graph = Graph()
-    arregloGraph = []
-    # Crear y agregar nodos al grafo con un ciclo
-    cabeza = listaNodos.cabeza
-    while cabeza:
-        arregloGraph.append(Node1(str(cabeza.id)))
-        cabeza = cabeza.siguiente
-
-    for nodo in arregloGraph:
-        graph.add_node(nodo)
-        if nodo.name == '1':
-            start_node = nodo
-        elif nodo.name == '6':
-            goal_node = nodo
-
-    # Conectar los nodos con aristas (edges) según tu lógica
-    # Por ejemplo, puedes conectar cada nodo con su sucesor inmediato en el ciclo
-    for i in guadarTuplas:
-        repeticion = math.floor((int(i[2])*1000)/int(i[4]))
-        inicio = arregloGraph[(int(i[0])-1)]
-        final = arregloGraph[(int(i[1])-1)]
-        graph.add_edge(inicio, final, int(i[5]), int(i[2]),repeticion)
-
-    start_node.heuristic_value=0
-    path = BeamSearch(graph, start_node, goal_node, beam=2)
-    print(path)
+    def miHeuristica(tupla):
+        global M
+        speed = int(tupla[5])
+        distance = int(tupla[2])
+        retransmission =  math.floor((int(tupla[2])*1000)/int(tupla[4]))
+        s1 = float(M)/float(speed)
+        s2 = math.floor(distance/retransmission)
+        return s1 + s2
     
+    def nodosHijos(np):
+        hijos = [] #costo despues de pasar por heuristica, nodo padre
+        for tupla in guadarTuplas:
+            if int(tupla[0]) == np or int(tupla[1]) == np:
+                costo = miHeuristica(tupla)
+                hijos.append((costo,np))
+        return hijos
+    visitados = []
+    inicio = 1
+    fin = 5
+    nodoPresente=inicio
+    while nodoPresente != fin:
+        visitados.append(nodoPresente)
+        hijosSinOrdenar=nodosHijos(nodoPresente)
+
 
 
 
