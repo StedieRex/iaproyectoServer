@@ -128,11 +128,21 @@ def guardarPNGmapa(guardarNodosConConexiones):
             window.blit(text_surface, text_rect)
         tipoImagen = 2
         pygame.image.save(window, "mapa_ConConexiones.png")  # Guardar la ventana como imagen
-        ventana.update()
+        # Cargar la imagen en un widget Label
+        nuevaImagen = Image.open("mapa_ConConexiones.png")
+        nuevaImagen = nuevaImagen.resize((750, 500))
+        nuevaImagen_tk = ImageTk.PhotoImage(nuevaImagen)
+        label_imagen.configure(image=nuevaImagen_tk)
+        label_imagen.image = nuevaImagen_tk
+        
     else:
         tipoImagen = 1
         pygame.image.save(window, "mapa_SinConexiones.png")  # Guardar la ventana como imagen
-        ventana.update()
+        nuevaImagen = Image.open("mapa_SinConexiones.png")
+        nuevaImagen = nuevaImagen.resize((750, 500))
+        nuevaImagen_tk = ImageTk.PhotoImage(nuevaImagen)
+        label_imagen.configure(image=nuevaImagen_tk)
+        label_imagen.image = nuevaImagen_tk      
     # Salir del juego
     pygame.quit()
 
