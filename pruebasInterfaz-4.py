@@ -525,14 +525,14 @@ def heuristic(edge_info, parent_node):
 
 def BeamSearch(graph, start, goal, beam):
     global cajaTablaAgrupada
-    open_set = [start]
-    closed_set = []
+    open_set = [start] # List of nodes to be evaluated
+    closed_set = [] # List of nodes already evaluated
     counter = 0
     while open_set:
-        #print(f"open_set={open_set}")
+        #print(f"Lista de los mejores k elementos = {open_set}")
         
         cajaTablaAgrupada.config(state="normal")
-        cajaTablaAgrupada.insert(tk.END, f"open_set={open_set} camino -> ")
+        cajaTablaAgrupada.insert(tk.END, f"Lista de los mejores K elementos={open_set} \n")
         cajaTablaAgrupada.config(state="disabled")
 
         current_node = open_set.pop(0)
@@ -580,26 +580,52 @@ def BeamSearch(graph, start, goal, beam):
         # counter += 1
         # print(counter)
 
+        idNodo = []
+        valorHeuristico = []
+        for h in open_set:
+            idNodo.append(h.name)
+            valorHeuristico.append(h.heuristic_value)
+
         cajaTablaAgrupada.config(state="normal")
-        cajaTablaAgrupada.insert(tk.END, closed_set)
-        print(closed_set)
-        cajaTablaAgrupada.insert(tk.END, "\n")
-        cajaTablaAgrupada.insert(tk.END, "\t",[(h, h.heuristic_value) for h in open_set])
-        print("\t",[(h, h.heuristic_value) for h in open_set])
-        cajaTablaAgrupada.insert(tk.END, "\n")
+        cajaTablaAgrupada.insert(tk.END, f"elementos ya visitaos = {closed_set} \n")
+        cajaTablaAgrupada.insert(tk.END, "tabla de elementos en open_set sin ordenar= \n")
+        cajaTablaAgrupada.insert(tk.END, f"{valorHeuristico}\n")
+        cajaTablaAgrupada.insert(tk.END, f"{idNodo} \n")
+        cajaTablaAgrupada.config(state="disabled")
+        
         open_set.sort(key=lambda x: x.heuristic_value)
-        cajaTablaAgrupada.insert(tk.END, "\t",[(h, h.heuristic_value) for h in open_set])
-        print("\t",[(h, h.heuristic_value) for h in open_set])
-        cajaTablaAgrupada.insert(tk.END, "\n")
+        idNodo.clear()
+        valorHeuristico.clear()
+        for h in open_set:
+            idNodo.append(h.name)
+            valorHeuristico.append(h.heuristic_value)
+        
+        cajaTablaAgrupada.config(state="normal")
+        cajaTablaAgrupada.insert(tk.END, "tabla de elementos en open_set ordenados= \n")
+        cajaTablaAgrupada.insert(tk.END, f"{valorHeuristico}\n") # valor heuristico del cable en segundos
+        cajaTablaAgrupada.insert(tk.END, f"{idNodo} \n") # nodo al que se dirige el cable
+        cajaTablaAgrupada.config(state="disabled")
+
         open_set = open_set[:beam]
         counter += 1
-        cajaTablaAgrupada.insert(tk.END, counter)
-        print(counter)
-        cajaTablaAgrupada.insert(tk.END, "\n")
+        cajaTablaAgrupada.config(state="normal")
+        cajaTablaAgrupada.insert(tk.END, f"iteracion : {counter} \n")
         cajaTablaAgrupada.config(state="disabled")
-        time.sleep(2)
+        #time.sleep(2)
 
     return "FAIL"
+
+def  dibujoCamino(path):
+    pygame.init()
+    window_width = 1000
+    window_height = 600
+    window = pygame.display.set_mode((window_width, window_height))
+    pygame.display.set_caption("Sistema de Nodos")
+
+    background = pygame.image.load("mapa_conConexiones.png")    
+    background = pygame.transform.scale(background, (window_width, window_height))
+   
+    window.blit(background, (0, 0))
 
 
 def iniciarBeamSearch():
@@ -637,9 +663,10 @@ def iniciarBeamSearch():
     path = BeamSearch(graph, start_node, goal_node, beam=2)
 
     cajaTablaAgrupada.config(state="normal")
-    cajaTablaAgrupada.insert(tk.END, path)
-    cajaTablaAgrupada.insert(tk.END, "\n")
+    cajaTablaAgrupada.insert(tk.END, f"Camino encontrado -> | {path} | \n")
     cajaTablaAgrupada.config(state="disabled")
+
+    dibujoCamino(path)
     #print(path)
 
 
@@ -727,10 +754,13 @@ cajaTablaAgrupada.config(xscrollcommand=scrollbar_horizontal.set)
 #--------------------- insertar tam del paquete ---------------------
 
 caja_insertarPaquete = tk.Entry(ventana, width=25)#caja para numero de grupos
-caja_insertarPaquete.place(x=895,y=470)
+caja_insertarPaquete.place(x=895,y=475)
 
 etiqueta_insertarPaquete = tk.Label(ventana, text="Insertar tamaño del paquete:")
-etiqueta_insertarPaquete.place(x=895,y=440)
+etiqueta_insertarPaquete.place(x=895,y=445)
+
+etiqueta_medicionTam = tk.Label(ventana, text="Mb")
+etiqueta_medicionTam.place(x=1055,y=475)
 
 boton_Comenzar = ttk.Button(ventana, text="Comenzar", command=iniciarBeamSearch)
 boton_Comenzar.place(x=935,y=560)
