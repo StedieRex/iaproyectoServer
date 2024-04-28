@@ -421,7 +421,7 @@ def editorMapaNodos():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and button_rect.collidepoint(event.pos):
                     guardarPNGmapa(False)
-                    print("Guardando nodos")
+                    #print("Guardando nodos")
                     pygame.quit()
 
                 elif event.button == 1:  # Click izquierdo
@@ -459,13 +459,13 @@ def editorMapaNodos():
 
 # --------------------- Guardar y cargar nodos y conexiones ---------------------
 def guardarNodosyConexiones():
-    print("Guardando nodos y conexiones")
-    print(guadarTuplas)
+    #print("Guardando nodos y conexiones")
+    #print(guadarTuplas)
     # Crear un archivo de texto
     with open("nodos_conexiones.txt", "w") as archivo:
         for tupla in guadarTuplas:
             archivo.write(f"{tupla[0]} {tupla[1]} {tupla[2]} {tupla[3]} {tupla[4]} {tupla[5]}\n")
-    print("Nodos y conexiones guardados en nodos_conexiones.txt")
+    #print("Nodos y conexiones guardados en nodos_conexiones.txt")
     with open("nodos.txt", "w") as archivo:
         actual = listaNodos.cabeza
         while actual:
@@ -480,30 +480,30 @@ def cargarNodosyConexiones():
     comprobarContador = 1
     guadarTuplas = []
     listaNodos = ListaEnlazada()
-    print("Cargando nodos y conexiones")
+    #print("Cargando nodos y conexiones")
     # Leer el archivo de texto
     with open("nodos_conexiones.txt", "r") as archivo:
         lineas = archivo.readlines()
         for linea in lineas:
             datos = linea.split()
             guadarTuplas.append((datos[0], datos[1], datos[2], datos[3], datos[4], datos[5]))
-    print("Nodos y conexiones cargados")
-    print(guadarTuplas)
+    #print("Nodos y conexiones cargados")
+    #print(guadarTuplas)
     with open("nodos.txt", "r") as archivo:
         lineas = archivo.readlines()
         for linea in lineas:
             datos = linea.split()
             ingresandoPosicion = (int(datos[1]), int(datos[2]))
             listaNodos.ingresarNuevoNodo(int(datos[0]), ingresandoPosicion)
-    print("Nodos cargados")
+    #print("Nodos cargados")
     cabeza = listaNodos.cabeza
     while cabeza:
         global contadorID
         contadorID += 1
-        print(cabeza.id)
-        print(cabeza.posicionXY)
+        #print(cabeza.id)
+       # print(cabeza.posicionXY)
         cabeza = cabeza.siguiente
-    print(contadorID)
+    #print(contadorID)
 
     # actualizando la imagen
     nuevaImagen = Image.open("mapa_ConConexiones.png")
@@ -611,7 +611,7 @@ def BeamSearch(graph, start, goal, beam):
         cajaTablaAgrupada.config(state="normal")
         cajaTablaAgrupada.insert(tk.END, f"iteracion : {counter} \n")
         cajaTablaAgrupada.config(state="disabled")
-        #time.sleep(2)
+        time.sleep(2)
 
     return "FAIL"
 
@@ -622,11 +622,72 @@ def  dibujoCamino(path):
     window = pygame.display.set_mode((window_width, window_height))
     pygame.display.set_caption("Sistema de Nodos")
 
-    background = pygame.image.load("mapa_conConexiones.png")    
-    background = pygame.transform.scale(background, (window_width, window_height))
-   
-    window.blit(background, (0, 0))
+    BLACK = (0, 0, 0)
 
+    background = pygame.image.load("mapa_ConConexiones.png")    
+    background = pygame.transform.scale(background, (window_width, window_height))
+
+    button_rect = pygame.Rect(10, 500, 150, 40)  # Rectángulo para el botón de guardar, (x, y, ancho, alto)
+
+
+    runing = True
+
+    actual = listaNodos.cabeza
+    arregloNodos = []
+    while actual:
+        arregloNodos.append([actual.id,actual.posicionXY[0],actual.posicionXY[1]])
+        actual = actual.siguiente
+
+    while runing:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                runing = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1 and button_rect.collidepoint(event.pos):
+                    pygame.quit()
+
+        window.blit(background, (0, 0))
+
+        pygame.draw.rect(window, (51, 255, 144), button_rect)  # Rectángulo verde
+        font = pygame.font.Font(None, 30)
+        text_surface = font.render("Salir", True, BLACK)
+        text_rect = text_surface.get_rect(center=button_rect.center)
+        window.blit(text_surface, text_rect)
+        contador = 1
+        for nodoInicial in path: # i es el indice del camino, tupla es el camino en si
+            #conocer el tipo de dato
+            print(type(nodoInicial))
+            print(nodoInicial)
+            nodoFinal = path[contador]
+            print(nodoFinal)
+                # Encontrar las posiciones de los nodos
+
+            encontrado = 0
+            for nodo in arregloNodos:
+                if nodo[0] == nodoInicial:
+                    posInicialx = int(nodo[1])+10
+                    posInicialy = int(nodo[2])+10
+                    encontrado+=1
+                elif nodo[0] == nodoFinal:
+                    posFinalx = int(nodo[1])+10
+                    posFinaly = int(nodo[2])+10
+                    encontrado+=1
+                if encontrado == 2:
+                    print(f"posInicialx: {posInicialx} posInicialy: {posInicialy} posFinalx: {posFinalx} posFinaly: {posFinaly}")
+                    break
+            # Dibujar la línea
+            
+            pygame.draw.line(window, (123,225,8), (posInicialx,posInicialy), (posFinalx,posFinaly), 2)
+            contador += 1
+            time.sleep(3) # tiempo de espera para ver el camino, el tiempo es de 3 segundos
+            pygame.display.flip()
+            if contador == len(path):
+                break
+        
+
+    pygame.quit
+     
+        
 
 def iniciarBeamSearch():
     # Crear el grafo
@@ -665,6 +726,10 @@ def iniciarBeamSearch():
     cajaTablaAgrupada.config(state="normal")
     cajaTablaAgrupada.insert(tk.END, f"Camino encontrado -> | {path} | \n")
     cajaTablaAgrupada.config(state="disabled")
+
+    #pasar a un arreglo de enteros
+    for i in range(len(path)):
+        path[i] = int(path[i].name)
 
     dibujoCamino(path)
     #print(path)
